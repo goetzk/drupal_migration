@@ -3,15 +3,13 @@ from __future__ import unicode_literals
 from django.db import models
 
 
-# - field_data_body , page bodies (180 rows)
-#   select entity_id, revision_id, body_value from field_data_body ;
-# NOTE: this is current body, where FieldRevisionBody is all the previous revisions?
-class FieldDataBody(models.Model):
+# TODO: Is this is current body, where FieldRevisionBody is all the previous revisions?
+class FieldDataBody(models.Model):  # Approx 185 rows
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts or short thoughts
     deleted = models.IntegerField()                           # ignore, always 0
     entity_id = models.IntegerField()                         # ignore, always 2
-    revision_id = models.IntegerField(blank=True, null=True)  # TODO: use this
+    revision_id = models.IntegerField(blank=True, null=True)  # NOTE: I don't think there is a central location for this, its just an identifier across tables
     language = models.CharField(max_length=32)                # ignore, unset
     delta = models.IntegerField()                             # ignore, always 0
     body_value = models.TextField(blank=True)                 # text, actual body
@@ -22,17 +20,15 @@ class FieldDataBody(models.Model):
         managed = False
         db_table = 'field_data_body'
 
-# - field_data_field_files, files uploaded in to drupal. (i only have 5, easier to manually move them?)
-#   select entity_id, revision_id, delta, field_files_fid, field_files_description from field_data_field_files;
-class FieldDataFieldFiles(models.Model):
+class FieldDataFieldFiles(models.Model): # files uploaded in to drupal. (5 rows, easier to manually move them)
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts or short thoughts
     deleted = models.IntegerField()                           # ignore, always 0
-    entity_id = models.IntegerField()                         # TODO: use this, it is node id
-    revision_id = models.IntegerField(blank=True, null=True)  # TODO: use this, associates with a revision
+    entity_id = models.IntegerField()                         # NOTE: Node.nid, any others?
+    revision_id = models.IntegerField(blank=True, null=True)  # TODO: use this, specifies revision
     language = models.CharField(max_length=32)                # ignore, unset
     delta = models.IntegerField()                             # ignore, always 0
-    field_files_fid = models.IntegerField(blank=True, null=True) # NOTE: unique file id: probably PK
+    field_files_fid = models.IntegerField(blank=True, null=True) # NOTE: FileManaged.fid
     field_files_display = models.IntegerField()               # Ignore, all 1
     field_files_description = models.TextField(blank=True)    # TODO: use this, some have text
 
@@ -40,10 +36,7 @@ class FieldDataFieldFiles(models.Model):
         managed = False
         db_table = 'field_data_field_files'
 
-
-# - field_data_field_tags, map between node/pages and taxonomy/tags
-#   select entity_id, revision_id, delta, field_tags_tid from field_data_field_tags;
-class FieldDataFieldTags(models.Model):
+class FieldDataFieldTags(models.Model): # map between node/pages and taxonomy/tags. 630 rows
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
     deleted = models.IntegerField()                           # ignore, always 0
@@ -51,26 +44,24 @@ class FieldDataFieldTags(models.Model):
     revision_id = models.IntegerField(blank=True, null=True)  # NOTE: this changes
     language = models.CharField(max_length=32)                # ignore, undef
     delta = models.IntegerField()                             # ignore, changes but probably safe to ignore
-    field_tags_tid = models.IntegerField(blank=True, null=True) # FIXME: is this an index? not sure what the numbers here relate to
+    field_tags_tid = models.IntegerField(blank=True, null=True) # NOTE: TaxonomyTermData.tid
 
     class Meta:
         managed = False
         db_table = 'field_data_field_tags'
 
 
-# - field_revision_body, appears to contain history of all fields. relationship to node_revision? (312 rows)
-#   select entity_id, revision_id, body_value from field_revision_body ;
 # NOTE: has more revision_id's than FieldDataBody. that has 181 and this 314 (revision id is 322, some missing? deleted?)
 # If they are duplicate when they match, I don't need to look at FieldDataBody
-class FieldRevisionBody(models.Model):
+class FieldRevisionBody(models.Model): # appears to contain history of all entities.
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
     deleted = models.IntegerField()                           # ignore, always 0
-    entity_id = models.IntegerField()                         # NOTE: this changes, probably node id
-    revision_id = models.IntegerField()                       # NOTE: this changes
+    entity_id = models.IntegerField()                         # NOTE: Node.nid
+    revision_id = models.IntegerField()                       # NOTE: this changes, ties to all other revision_id's
     language = models.CharField(max_length=32)                # ignore, always undef
     delta = models.IntegerField()                             # ignore, always 0
-    body_value = models.TextField(blank=True)                 # NOTE: use this
+    body_value = models.TextField(blank=True)                 # NOTE: use this, contains full text of ody
     body_summary = models.TextField(blank=True)               # ignore, always blank
     body_format = models.CharField(max_length=255, blank=True) # ignore, full vs limited html; don't care
 
@@ -79,44 +70,38 @@ class FieldRevisionBody(models.Model):
         db_table = 'field_revision_body'
 
 
-# - field_revision_field_files, history of file changes (?); will skip (18 rows)
-#   select * from field_revision_field_files ;
-class FieldRevisionFieldFiles(models.Model):
+class FieldRevisionFieldFiles(models.Model): # 18 rows
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
     deleted = models.IntegerField()                           # ignore, always 0
-    entity_id = models.IntegerField()                         # NOTE: this changes
+    entity_id = models.IntegerField()                         # NOTE: Node.nid
     revision_id = models.IntegerField()                       # NOTE: this changes
     language = models.CharField(max_length=32)                # ignore, always unde
     delta = models.IntegerField()                             # Varies, but will probably ignore it
-    field_files_fid = models.IntegerField(blank=True, null=True) # NOTE: this changes, not 100% sure what it points at
+    field_files_fid = models.IntegerField(blank=True, null=True) # NOTE: FileManaged.fid
     field_files_display = models.IntegerField()               # ignore, all 1
-    field_files_description = models.TextField(blank=True)    # NOTE: some have text in them
+    field_files_description = models.TextField(blank=True)    # NOTE: some have text (description) in them
 
     class Meta:
         managed = False
         db_table = 'field_revision_field_files'
 
-
-# - field_revision_field_tags (1097 rows!)
-#   select entity_id, revision_id, delta, field_tags_tid from field_revision_field_tags;
-class FieldRevisionFieldTags(models.Model):
+class FieldRevisionFieldTags(models.Model): # tags at a given revision. 1100 rows!
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
     deleted = models.IntegerField()                           # ignore, always 0
-    entity_id = models.IntegerField()                         # NOTE: this changes
+    entity_id = models.IntegerField()                         # NOTE: Node.nid
     revision_id = models.IntegerField()                       # NOTE: this changes
     language = models.CharField(max_length=32)                # ignore, always unde
     delta = models.IntegerField()                             # Varies, but will probably ignore it
-    field_tags_tid = models.IntegerField(blank=True, null=True) # NOTE: changes, but NFI what it points at
+    field_tags_tid = models.IntegerField(blank=True, null=True) # NOTE: TaxonomyTermData.tid
 
     class Meta:
         managed = False
         db_table = 'field_revision_field_tags'
 
-
-class FileManaged(models.Model):
-    fid = models.IntegerField(primary_key=True)         # NOTE: changes, unique here
+class FileManaged(models.Model): # 5 rows
+    fid = models.IntegerField(primary_key=True)         # NOTE: referenced elsewhere
     uid = models.IntegerField()                         # ignore, always 1 (user id, presumably)
     filename = models.CharField(max_length=255)         # NOTE: files name, useful
     uri = models.CharField(unique=True, max_length=255) # ignore, just filename with public:// prefixed to it
@@ -129,8 +114,7 @@ class FileManaged(models.Model):
         managed = False
         db_table = 'file_managed'
 
-
-class FileUsage(models.Model):
+class FileUsage(models.Model): # 5 rows
     fid = models.IntegerField()                         # NOTE: maps to FileManaged.fid
     module = models.CharField(max_length=255)           # ignore, all file
     type = models.CharField(max_length=64)              # ignore, all node
@@ -142,11 +126,9 @@ class FileUsage(models.Model):
         db_table = 'file_usage'
 
 
-# - node for page titles, created, updated, vid, status (published) (180 rows)
-#   select vid, title, status, created, changed, promote from node;
-class Node(models.Model):
+class Node(models.Model): # 180 rows
     nid = models.IntegerField(primary_key=True)                     # NOTE: use this, nodes unique ID
-    vid = models.IntegerField(unique=True, blank=True, null=True)   # TODO: confirm, is this the current revision?
+    vid = models.IntegerField(unique=True, blank=True, null=True)   # NOTE: revision_id in other places
     type = models.CharField(max_length=32)                          # ignore, just extended/short thoughts
     language = models.CharField(max_length=12)                      # ignore, all undef
     title = models.CharField(max_length=255)                        # NOTE: use this, its text
@@ -167,14 +149,14 @@ class Node(models.Model):
 
 # - node_revision for nid (node id; 'page'), vid (revision id?), title (page title), log, timestamp, status (published)  (312 rows)
 #   select nid, vid, title, log, timestamp, status from node_revision;
-class NodeRevision(models.Model):
-    nid = models.IntegerField()                     # NOTE: use this, nodes unique ID
-    vid = models.IntegerField(primary_key=True)     # TODO: confirm, is this the current revision?
+class NodeRevision(models.Model): # 317 rows
+    nid = models.IntegerField()                     # NOTE: Node.nid
+    vid = models.IntegerField(primary_key=True)     # NOTE: current revision, maps to revision_id elsewhere
     uid = models.IntegerField()                     # ignore, all 0
     title = models.CharField(max_length=255)        # NOTE: use this
     log = models.TextField()                        # NOTE: use this
     timestamp = models.IntegerField()               # NOTE: use this
-    status = models.IntegerField()                  # published yes/no (1/0)
+    status = models.IntegerField()                  # ignore, published yes/no (1/0)
     comment = models.IntegerField()                 # ignore, all 0
     promote = models.IntegerField()                  # ignore, not using anyway
     sticky = models.IntegerField()                  # ignore, all 0
@@ -184,9 +166,7 @@ class NodeRevision(models.Model):
         db_table = 'node_revision'
 
 
-# - taxonomy_index for created date (or ignore and simply attach to posts)
-#   select * from taxonomy_index ;
-class TaxonomyIndex(models.Model):
+class TaxonomyIndex(models.Model):  # 432 rows
     nid = models.IntegerField()                          # NOTE: use this, TODO: FK on Node.nid (node id)
     tid = models.IntegerField()                          # NOTE: use this, TODO: FK on TaxonomyTermData.tid (term id)
     sticky = models.IntegerField(blank=True, null=True)  # ignore, all 0
@@ -197,11 +177,9 @@ class TaxonomyIndex(models.Model):
         db_table = 'taxonomy_index'
 
 
-# - taxonomy_term_data for tags (210 rows)
-#   select name from taxonomy_term_data;
-class TaxonomyTermData(models.Model):
-    tid = models.IntegerField(primary_key=True)         # NOTE: this changes
-    vid = models.IntegerField()                         # NOTE: presumably version id, use this
+class TaxonomyTermData(models.Model): # 210 rows
+    tid = models.IntegerField(primary_key=True)         # NOTE: unique id, referenced elsewhere
+    vid = models.IntegerField()                         # ignore, all set to 1 (i haven't edited my tags)
     name = models.CharField(max_length=255)             # NOTE: keyword for tag
     description = models.TextField(blank=True)          # NOTE: description of tag
     format = models.CharField(max_length=255, blank=True) # ignore
