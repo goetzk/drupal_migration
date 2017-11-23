@@ -20,22 +20,6 @@ class FieldDataBody(models.Model):  # Approx 185 rows
         managed = False
         db_table = 'field_data_body'
 
-class FieldDataFieldFiles(models.Model): # files uploaded in to drupal. (5 rows, easier to manually move them)
-    entity_type = models.CharField(max_length=128)            # Ignore, always node
-    bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts or short thoughts
-    deleted = models.IntegerField()                           # ignore, always 0
-    entity_id = models.IntegerField()                         # NOTE: Node.nid, any others?
-    revision_id = models.IntegerField(blank=True, null=True)  # TODO: use this, specifies revision
-    language = models.CharField(max_length=32)                # ignore, unset
-    delta = models.IntegerField()                             # ignore, always 0
-    field_files_fid = models.IntegerField(blank=True, null=True) # NOTE: FileManaged.fid
-    field_files_display = models.IntegerField()               # Ignore, all 1
-    field_files_description = models.TextField(blank=True)    # TODO: use this, some have text
-
-    class Meta:
-        managed = False
-        db_table = 'field_data_field_files'
-
 class FieldDataFieldTags(models.Model): # map between node/pages and taxonomy/tags. 630 rows
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
@@ -70,22 +54,6 @@ class FieldRevisionBody(models.Model): # appears to contain history of all entit
         db_table = 'field_revision_body'
 
 
-class FieldRevisionFieldFiles(models.Model): # 18 rows
-    entity_type = models.CharField(max_length=128)            # Ignore, always node
-    bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
-    deleted = models.IntegerField()                           # ignore, always 0
-    entity_id = models.IntegerField()                         # NOTE: Node.nid
-    revision_id = models.IntegerField()                       # NOTE: this changes
-    language = models.CharField(max_length=32)                # ignore, always unde
-    delta = models.IntegerField()                             # Varies, but will probably ignore it
-    field_files_fid = models.IntegerField(blank=True, null=True) # NOTE: FileManaged.fid
-    field_files_display = models.IntegerField()               # ignore, all 1
-    field_files_description = models.TextField(blank=True)    # NOTE: some have text (description) in them
-
-    class Meta:
-        managed = False
-        db_table = 'field_revision_field_files'
-
 class FieldRevisionFieldTags(models.Model): # tags at a given revision. 1100 rows!
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
@@ -99,31 +67,6 @@ class FieldRevisionFieldTags(models.Model): # tags at a given revision. 1100 row
     class Meta:
         managed = False
         db_table = 'field_revision_field_tags'
-
-class FileManaged(models.Model): # 5 rows
-    fid = models.IntegerField(primary_key=True)         # NOTE: referenced elsewhere
-    uid = models.IntegerField()                         # ignore, always 1 (user id, presumably)
-    filename = models.CharField(max_length=255)         # NOTE: files name, useful
-    uri = models.CharField(unique=True, max_length=255) # ignore, just filename with public:// prefixed to it
-    filemime = models.CharField(max_length=255)         # NOTE: mime type, might be useful?
-    filesize = models.IntegerField()                    # ignore, size probably isn't relevant
-    status = models.IntegerField()                      # ignore, all 1
-    timestamp = models.IntegerField()                   # NOTE: probably a publication/upload stamp
-
-    class Meta:
-        managed = False
-        db_table = 'file_managed'
-
-class FileUsage(models.Model): # 5 rows
-    fid = models.IntegerField()                         # NOTE: maps to FileManaged.fid
-    module = models.CharField(max_length=255)           # ignore, all file
-    type = models.CharField(max_length=64)              # ignore, all node
-    id = models.IntegerField()                          # NOTE: node id (Node.nid) / page its on
-    count = models.IntegerField()                       # ignore, not sure what this is for
-
-    class Meta:
-        managed = False
-        db_table = 'file_usage'
 
 
 class Node(models.Model): # 180 rows
@@ -164,17 +107,6 @@ class NodeRevision(models.Model): # 317 rows
     class Meta:
         managed = False
         db_table = 'node_revision'
-
-
-class TaxonomyIndex(models.Model):  # 432 rows
-    nid = models.IntegerField()                          # NOTE: use this, TODO: FK on Node.nid (node id)
-    tid = models.IntegerField()                          # NOTE: use this, TODO: FK on TaxonomyTermData.tid (term id)
-    sticky = models.IntegerField(blank=True, null=True)  # ignore, all 0
-    created = models.IntegerField()                      # NOTE: use this , TODO: return as datettime
-
-    class Meta:
-        managed = False
-        db_table = 'taxonomy_index'
 
 
 class TaxonomyTermData(models.Model): # 210 rows
