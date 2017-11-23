@@ -2,6 +2,53 @@ from __future__ import unicode_literals
 
 from django.db import models
 
+class Node(models.Model): # 180 rows
+    nid = models.IntegerField(primary_key=True)                     # NOTE: use this, nodes unique ID
+    vid = models.IntegerField(unique=True, blank=True, null=True)   # NOTE: revision_id in other places
+    type = models.CharField(max_length=32)                          # ignore, just extended/short thoughts
+    language = models.CharField(max_length=12)                      # ignore, all undef
+    title = models.CharField(max_length=255)                        # NOTE: use this, its text
+    uid = models.IntegerField()                                     # ignore, all 1
+    status = models.IntegerField()                                  # NOTE: published yes/no (1/0)
+    created = models.IntegerField()                                 # NOTE: use this
+    changed = models.IntegerField()                                 # NOTE: use this
+    comment = models.IntegerField()                                 # ignore, all 0
+    promote = models.IntegerField()                                 # ignore, i wasn't really using this properly
+    sticky = models.IntegerField()                                  # ignore, all 0
+    tnid = models.IntegerField()                                    # ignore, all 0
+    translate = models.IntegerField()                               # ignore, all 0
+    
+    class Meta:
+        managed = False
+        db_table = 'node'
+
+class NodeRevision(models.Model): # 317 rows
+    nid = models.IntegerField()                     # NOTE: Node.nid
+    vid = models.IntegerField(primary_key=True)     # NOTE: current revision, maps to revision_id elsewhere
+    uid = models.IntegerField()                     # ignore, all 0
+    title = models.CharField(max_length=255)        # NOTE: use this
+    log = models.TextField()                        # NOTE: use this
+    timestamp = models.IntegerField()               # NOTE: use this
+    status = models.IntegerField()                  # ignore, published yes/no (1/0)
+    comment = models.IntegerField()                 # ignore, all 0
+    promote = models.IntegerField()                  # ignore, not using anyway
+    sticky = models.IntegerField()                  # ignore, all 0
+    
+    class Meta:
+        managed = False
+        db_table = 'node_revision'
+
+class TaxonomyTermData(models.Model): # 210 rows
+    tid = models.IntegerField(primary_key=True)         # NOTE: unique id, referenced elsewhere
+    vid = models.IntegerField()                         # ignore, all set to 1 (i haven't edited my tags)
+    name = models.CharField(max_length=255)             # NOTE: keyword for tag
+    description = models.TextField(blank=True)          # NOTE: description of tag
+    format = models.CharField(max_length=255, blank=True) # ignore
+    weight = models.IntegerField()                      # ignore
+    
+    class Meta:
+        managed = False
+        db_table = 'taxonomy_term_data'
 
 # TODO: Is this is current body, where FieldRevisionBody is all the previous revisions?
 class FieldDataBody(models.Model):  # Approx 185 rows
@@ -9,7 +56,7 @@ class FieldDataBody(models.Model):  # Approx 185 rows
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts or short thoughts
     deleted = models.IntegerField()                           # ignore, always 0
     entity_id = models.IntegerField()                         # ignore, always 2
-    revision_id = models.IntegerField(blank=True, null=True)  # NOTE: I don't think there is a central location for this, its just an identifier across tables
+    revision_id = models.IntegerField(blank=True, null=True)  # NOTE: changes
     language = models.CharField(max_length=32)                # ignore, unset
     delta = models.IntegerField()                             # ignore, always 0
     body_value = models.TextField(blank=True)                 # text, actual body
@@ -34,7 +81,6 @@ class FieldDataFieldTags(models.Model): # map between node/pages and taxonomy/ta
         managed = False
         db_table = 'field_data_field_tags'
 
-
 # NOTE: has more revision_id's than FieldDataBody. that has 181 and this 314 (revision id is 322, some missing? deleted?)
 # If they are duplicate when they match, I don't need to look at FieldDataBody
 class FieldRevisionBody(models.Model): # appears to contain history of all entities.
@@ -53,7 +99,6 @@ class FieldRevisionBody(models.Model): # appears to contain history of all entit
         managed = False
         db_table = 'field_revision_body'
 
-
 class FieldRevisionFieldTags(models.Model): # tags at a given revision. 1100 rows!
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
@@ -67,58 +112,4 @@ class FieldRevisionFieldTags(models.Model): # tags at a given revision. 1100 row
     class Meta:
         managed = False
         db_table = 'field_revision_field_tags'
-
-
-class Node(models.Model): # 180 rows
-    nid = models.IntegerField(primary_key=True)                     # NOTE: use this, nodes unique ID
-    vid = models.IntegerField(unique=True, blank=True, null=True)   # NOTE: revision_id in other places
-    type = models.CharField(max_length=32)                          # ignore, just extended/short thoughts
-    language = models.CharField(max_length=12)                      # ignore, all undef
-    title = models.CharField(max_length=255)                        # NOTE: use this, its text
-    uid = models.IntegerField()                                     # ignore, all 1
-    status = models.IntegerField()                                  # NOTE: published yes/no (1/0)
-    created = models.IntegerField()                                 # NOTE: use this
-    changed = models.IntegerField()                                 # NOTE: use this
-    comment = models.IntegerField()                                 # ignore, all 0
-    promote = models.IntegerField()                                 # ignore, i wasn't really using this properly
-    sticky = models.IntegerField()                                  # ignore, all 0
-    tnid = models.IntegerField()                                    # ignore, all 0
-    translate = models.IntegerField()                               # ignore, all 0
-
-    class Meta:
-        managed = False
-        db_table = 'node'
-
-
-# - node_revision for nid (node id; 'page'), vid (revision id?), title (page title), log, timestamp, status (published)  (312 rows)
-#   select nid, vid, title, log, timestamp, status from node_revision;
-class NodeRevision(models.Model): # 317 rows
-    nid = models.IntegerField()                     # NOTE: Node.nid
-    vid = models.IntegerField(primary_key=True)     # NOTE: current revision, maps to revision_id elsewhere
-    uid = models.IntegerField()                     # ignore, all 0
-    title = models.CharField(max_length=255)        # NOTE: use this
-    log = models.TextField()                        # NOTE: use this
-    timestamp = models.IntegerField()               # NOTE: use this
-    status = models.IntegerField()                  # ignore, published yes/no (1/0)
-    comment = models.IntegerField()                 # ignore, all 0
-    promote = models.IntegerField()                  # ignore, not using anyway
-    sticky = models.IntegerField()                  # ignore, all 0
-
-    class Meta:
-        managed = False
-        db_table = 'node_revision'
-
-
-class TaxonomyTermData(models.Model): # 210 rows
-    tid = models.IntegerField(primary_key=True)         # NOTE: unique id, referenced elsewhere
-    vid = models.IntegerField()                         # ignore, all set to 1 (i haven't edited my tags)
-    name = models.CharField(max_length=255)             # NOTE: keyword for tag
-    description = models.TextField(blank=True)          # NOTE: description of tag
-    format = models.CharField(max_length=255, blank=True) # ignore
-    weight = models.IntegerField()                      # ignore
-
-    class Meta:
-        managed = False
-        db_table = 'taxonomy_term_data'
-
 
