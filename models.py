@@ -50,22 +50,6 @@ class TaxonomyTermData(models.Model): # 210 rows
         managed = False
         db_table = 'taxonomy_term_data'
 
-# TODO: Is this is current body, where FieldRevisionBody is all the previous revisions?
-class FieldDataBody(models.Model):  # Approx 185 rows
-    entity_type = models.CharField(max_length=128)              # Ignore, always node
-    bundle = models.CharField(max_length=128)                   # ignore, always extended_thoughts or short thoughts
-    deleted = models.IntegerField()                             # ignore, always 0
-    entity_id = models.IntegerField()                           # ignore, always 2
-    revision_id = models.IntegerField(blank=True, null=True)  # NOTE: changes
-    language = models.CharField(max_length=32)                  # ignore, unset
-    delta = models.IntegerField()                               # ignore, always 0
-    body_value = models.TextField(blank=True)                   # text, actual body
-    body_summary = models.TextField(blank=True)                 # ignore, always blank
-    body_format = models.CharField(max_length=255, blank=True)  # ignore, don't care about the html supportedness
-
-    class Meta:
-        managed = False
-        db_table = 'field_data_body'
 
 class FieldDataFieldTags(models.Model): # map between node/pages and taxonomy/tags. 630 rows
     # Magic django managed primary_key, see README

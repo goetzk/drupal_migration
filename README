@@ -38,7 +38,6 @@ will cause new PK's to be created!
 https://stackoverflow.com/questions/2341576/updating-mysql-primary-key
 
 Tables I had to alter:
-  alter table field_data_body drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
   alter table field_data_field_tags drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
   alter table field_revision_body drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
   alter table field_revision_field_tags drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
