@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-# TODO: figure out where all the primary keys are. https://api.drupal.org/api/drupal/includes%21database%21schema.inc/group/schemaapi/7.x
 
 from django.db import models
 
@@ -69,6 +68,7 @@ class FieldDataBody(models.Model):  # Approx 185 rows
         db_table = 'field_data_body'
 
 class FieldDataFieldTags(models.Model): # map between node/pages and taxonomy/tags. 630 rows
+    # Magic django managed primary_key, see README
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
     deleted = models.IntegerField()                           # ignore, always 0
@@ -85,6 +85,7 @@ class FieldDataFieldTags(models.Model): # map between node/pages and taxonomy/ta
 # NOTE: has more revision_id's than FieldDataBody. that has 181 and this 314 (revision id is 322, some missing? deleted?)
 # If they are duplicate when they match, I don't need to look at FieldDataBody
 class FieldRevisionBody(models.Model): # appears to contain history of all entities.
+    # Magic django managed primary_key, see README
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
     deleted = models.IntegerField()                           # ignore, always 0
@@ -101,6 +102,7 @@ class FieldRevisionBody(models.Model): # appears to contain history of all entit
         db_table = 'field_revision_body'
 
 class FieldRevisionFieldTags(models.Model): # tags at a given revision. 1100 rows!
+    # Magic django managed primary_key, see README
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
     deleted = models.IntegerField()                           # ignore, always 0
