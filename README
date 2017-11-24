@@ -1,0 +1,55 @@
+background/overview
+===================
+
+install
+=======
+
+Download the git repository to your new django project.
+
+pip install -r requirements.txt
+
+configuration
+=============
+
+Add to drupal_migration to INSTALLED_APPS.
+- name db drupaldb
+- add router
+- 
+
+
+DB setup
+========
+
+I work with a copy of the db made by MySQL utility mysqldbcopy
+
+https://dev.mysql.com/doc/mysql-utilities/1.5/en/utils-task-clone-db.html
+
+mysqldbcopy --source=root:'password'@localhost \
+            --destination=root:'password'@localhost \
+            drupal7:drupal7django
+
+to update run with --force
+
+# TODO: decide if i should have manage=True or not. i suspect r/o is best
+This means drupal can manage the tables. running this on the drupal db directly
+will cause new PK's to be created!
+
+- some classes don't have PKs. add one if you need
+https://stackoverflow.com/questions/2341576/updating-mysql-primary-key
+
+Tables I had to alter:
+  alter table field_data_body drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
+  alter table field_data_field_tags drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
+  alter table field_revision_body drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
+  alter table field_revision_field_tags drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
+
+
+usage
+=====
+
+- assumes clean install, pk_offset may help
+
+- i have wagtail, script may assume wagtail (report bugs if its a problem)
+
+python manage.py migrate_drupal
+
