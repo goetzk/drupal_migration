@@ -22,6 +22,7 @@ except Page.DoesNotExist as pdne:
 
 # TODO: if needed, hard code OUT publishing, I will review + publish by hand
 for node_revision in NodeRevision.objects.all():
+  print 'Using revision {0} from node {1}'.format(node_revision.vid, node_revision.nid)
 
   current_timestamp = datetime.fromtimestamp(node_revision.timestamp)
   localised = pytz.timezone("UTC").localize(current_timestamp)
@@ -29,36 +30,31 @@ for node_revision in NodeRevision.objects.all():
   # Try and load an existing page to add a new revision, create one if there isn't an existing page
   try:
     page = LegacyBlogPage.objects.get(drupal_id=node_revision.nid)
-    print "page found in db"
+    # print "page found in db"
   except LegacyBlogPage.DoesNotExist as dne:
     page = LegacyBlogPage()
-    print "Page not found in DB: instantiated"
+    # print "Page not found in DB: instantiated"
   except Exception as ee:
     print "Unhandled Exception:"
     print ee
 
-  # FIXME: this isn't working
-  # check if we've seen this before
-  print 'comparing dates'
-  print page.date
-  print localised
   if page.date == localised:
-    print 'already done this page/revision/timestamp'
+    # print 'already done this page/revision/timestamp'
     continue
 
   page_content = FieldRevisionBody.objects.get(revision_id = node_revision.vid).body_value
 
-  print 'about to add stuff to page'
+  # print 'about to add stuff to page'
   # I can fix broken previews (probably all of them ... Later)
   # Or just have smaller number of words, also easy option and possibly nicer to look at?
-  page.preview = '{0} ...'.format(page_content[:245])
+  page.preview = u'{0} ...'.format(page_content[:245])
   page.body = page_content
   page.date = localised
   page.title = node_revision.title
   page.revision_log = node_revision.log
   page.drupal_id = node_revision.nid
 
-  print 'create tags'
+  # print 'create tags'
   # Delete existing tags in case some are removed in this revision (eg Draft)
   page.tags.clear()
   # Establish page tags at this revision
@@ -66,18 +62,18 @@ for node_revision in NodeRevision.objects.all():
     try:
       tag_name = TaxonomyTermData.objects.get(tid=current_tag.field_tags_tid).name
     except TaxonomyTermData.DoesNotExist as ttddne:
-      print FieldRevisionFieldTags.objects.filter(revision_id = node_revision.vid).values()
+      # print FieldRevisionFieldTags.objects.filter(revision_id = node_revision.vid).values()
       break
 
     page.tags.add(tag_name)
 
   # Use instead of save
-  root_page.add_child(instance=page)
+  if not page.id:
+    root_page.add_child(instance=page)
 
-  print 'about to revision'
+  # print 'about to revision'
   revision = page.save_revision(
-  #     user=self.import_user,
       submitted_for_moderation=False,
   )
-  print 'revision done'
+  # print 'revision done'
 
