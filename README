@@ -1,54 +1,86 @@
-background/overview
-===================
-
-install
+Install
 =======
 
 Download the git repository to your new django project.
 
 pip install -r requirements.txt
 
-configuration
-=============
+Pre flight
+==========
 
-Add to drupal_migration to INSTALLED_APPS.
-- name db drupaldb
-- add router
-- 
+MySQL
+-----
+
+Copy the MySQL db: django needs to be able to manage the primary keys ( Some classes don't have usable PKs)
 
 
-DB setup
-========
+Install mysqldbcopy (in mysql-utils) if it isn't already installed.
 
-I work with a copy of the db made by MySQL utility mysqldbcopy
+	mysqldbcopy --source=root:'password'@localhost \
+							--destination=root:'password'@localhost \
+							drupal7:drupal7copy --force
 
-https://dev.mysql.com/doc/mysql-utilities/1.5/en/utils-task-clone-db.html
+More help at https://dev.mysql.com/doc/mysql-utilities/1.5/en/utils-task-clone-db.html
 
-mysqldbcopy --source=root:'password'@localhost \
-            --destination=root:'password'@localhost \
-            drupal7:drupal7django
 
-to update run with --force
-
-# TODO: decide if i should have manage=True or not. i suspect r/o is best
-This means drupal can manage the tables. running this on the drupal db directly
-will cause new PK's to be created!
-
-- some classes don't have PKs. add one if you need
-https://stackoverflow.com/questions/2341576/updating-mysql-primary-key
-
-Tables I had to alter:
-  alter table field_data_field_tags drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
+Tables I had to alter (per https://stackoverflow.com/questions/2341576/updating-mysql-primary-key )
   alter table field_revision_body drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
   alter table field_revision_field_tags drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
 
+Django
+------
 
-usage
+Add `drupal_migration` to INSTALLED_APPS.
+
+Add new db stanza named drupaldb
+
+	DATABASES = {
+			'default': {
+					'ENGINE': 'django.db.backends.sqlite3',
+					'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+			},
+			'drupaldb': {
+					'ENGINE': 'django.db.backends.mysql',
+					'NAME': 'drupal7copy',
+					'USER': 'root',
+					'PASSWORD': 'password',
+					'HOST': '127.0.0.1',
+					# Recommended by Django
+					'OPTIONS': { 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'" }
+			}
+
+
+
+
+Usage
 =====
 
-- assumes clean install, pk_offset may help
+Page model
+----------
 
-- i have wagtail, script may assume wagtail (report bugs if its a problem)
+Ensure the following fields exist (or further customise migration script)
 
-python manage.py migrate_drupal
+    drupal_id = models.IntegerField(blank=True, null=True)
+    date = models.DateTimeField("Last updated")
+    preview = models.CharField(max_length=250)
+    body = RichTextField(blank=True)
+    revision_log = RichTextField(blank=True)
+		tags = ClusterTaggableManager(through=LegacyBlogPageTag, blank=True)
+
+
+Running code
+------------
+
+Customise drupal_to_django (eg change model imports if required)
+
+Run the script (This should be a management command, but I didn't bother)
+
+python manage.py shell
+from drupal_migration.management.commands import drupal_to_django
+
+Contributing
+============
+
+Please get in touch via the issue tracker if you would like to request changes
+or to offer patches.
 
