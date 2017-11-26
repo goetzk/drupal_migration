@@ -7,9 +7,9 @@ class Node(models.Model): # 180 rows
     vid = models.IntegerField(unique=True, blank=True, null=True)   # NOTE: revision_id in other places
     type = models.CharField(max_length=32)                          # ignore, just extended/short thoughts
     language = models.CharField(max_length=12)                      # ignore, all undef
-    title = models.CharField(max_length=255)                        # NOTE: use this, its text
+    title = models.CharField(max_length=255)                        # ignore, prefer NodeRevision.title
     uid = models.IntegerField()                                     # ignore, all 1
-    status = models.IntegerField()                                  # NOTE: published yes/no (1/0)
+    status = models.IntegerField()                                  # ignore, hard coding unpublished
     created = models.IntegerField()                                 # NOTE: use this
     changed = models.IntegerField()                                 # NOTE: use this
     comment = models.IntegerField()                                 # ignore, all 0
@@ -22,7 +22,7 @@ class Node(models.Model): # 180 rows
         managed = False
         db_table = 'node'
 
-class NodeRevision(models.Model): # 317 rows
+class NodeRevision(models.Model): # 319 rows, matches FieldRevisionBody
     nid = models.IntegerField()                     # NOTE: Node.nid
     vid = models.IntegerField(primary_key=True)     # NOTE: current revision, maps to revision_id elsewhere
     uid = models.IntegerField()                     # ignore, all 0
@@ -50,34 +50,16 @@ class TaxonomyTermData(models.Model): # 210 rows
         managed = False
         db_table = 'taxonomy_term_data'
 
-
-class FieldDataFieldTags(models.Model): # map between node/pages and taxonomy/tags. 630 rows
-    # Magic django managed primary_key, see README
-    entity_type = models.CharField(max_length=128)            # Ignore, always node
-    bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
-    deleted = models.IntegerField()                           # ignore, always 0
-    entity_id = models.IntegerField()                         # ignore, always 2
-    revision_id = models.IntegerField(blank=True, null=True)  # NOTE: 182 revisions, consistent with FieldDataBody but not useful as a PK
-    language = models.CharField(max_length=32)                # ignore, undef
-    delta = models.IntegerField()                             # ignore, changes but probably safe to ignore
-    field_tags_tid = models.IntegerField(blank=True, null=True) # NOTE: TaxonomyTermData.tid
-
-    class Meta:
-        managed = False
-        db_table = 'field_data_field_tags'
-
-# NOTE: has more revision_id's than FieldDataBody. that has 181 and this 314 (revision id is 322, some missing? deleted?)
-# If they are duplicate when they match, I don't need to look at FieldDataBody
-class FieldRevisionBody(models.Model): # appears to contain history of all entities.
+class FieldRevisionBody(models.Model): # appears to contain history of all entities, 319 rows
     # Magic django managed primary_key, see README
     entity_type = models.CharField(max_length=128)            # Ignore, always node
     bundle = models.CharField(max_length=128)                 # ignore, always extended_thoughts
     deleted = models.IntegerField()                           # ignore, always 0
     entity_id = models.IntegerField()                         # NOTE: Node.nid
-    revision_id = models.IntegerField()                       # NOTE: this changes, ties to all other revision_id's
+    revision_id = models.IntegerField()                       # NOTE: ties to all other revision_id's
     language = models.CharField(max_length=32)                # ignore, always undef
     delta = models.IntegerField()                             # ignore, always 0
-    body_value = models.TextField(blank=True)                 # NOTE: use this, contains full text of ody
+    body_value = models.TextField(blank=True)                 # NOTE: use this, contains full text of body
     body_summary = models.TextField(blank=True)               # ignore, always blank
     body_format = models.CharField(max_length=255, blank=True) # ignore, full vs limited html; don't care
 
