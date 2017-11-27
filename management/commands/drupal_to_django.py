@@ -47,7 +47,7 @@ for node_revision in NodeRevision.objects.all():
   # print 'about to add stuff to page'
   # I can fix broken previews (probably all of them ... Later)
   # Or just have smaller number of words, also easy option and possibly nicer to look at?
-  page.preview = u'{0} ...'.format(page_content[:245])
+  page.preview = u'{0} ...'.format(page_content[:495])
   page.body = page_content
   page.date = localised
   page.title = node_revision.title
