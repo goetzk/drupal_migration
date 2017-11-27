@@ -24,6 +24,9 @@ More help at https://dev.mysql.com/doc/mysql-utilities/1.5/en/utils-task-clone-d
 
 
 Tables I had to alter (per https://stackoverflow.com/questions/2341576/updating-mysql-primary-key )
+
+  mysql --user=root --password='password'
+  \r drupal7copy
   alter table field_revision_body drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
   alter table field_revision_field_tags drop primary key, add column `id` int(10) unsigned primary KEY AUTO_INCREMENT;
 
