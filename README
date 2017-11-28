@@ -76,10 +76,7 @@ Running code
 
 Customise drupal_to_django (eg change model imports if required)
 
-Run the script (This should be a management command, but I didn't bother)
-
-python manage.py shell
-from drupal_migration.management.commands import drupal_to_django
+python manage.py drupal_to_django
 
 Contributing
 ============
