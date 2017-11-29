@@ -72,8 +72,8 @@ class Command(BaseCommand):
 
 				page.tags.add(tag_name)
 
-      # Ensure pages are not published during migration
-      page.live = False
+			# Ensure pages are not published during migration
+			page.live = False
 
 			# Use instead of save
 			if not page.id:
