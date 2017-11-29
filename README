@@ -3,6 +3,12 @@ This project provides the code I used to migrate my site from Drupal to Django
 that they did the migration but no one had provided code that would work (a few
 close calls were broken by missing libraries).
 
+While simple (it ignores importing files, types of nodes and many other details) this script can:
+ * run idempotently
+ * import revisions of a page
+ * import change log history
+ * act as a starting point for further customisation
+
 Install
 =======
 
