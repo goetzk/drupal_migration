@@ -1,3 +1,8 @@
+This project provides the code I used to migrate my site from Drupal to Django
+(Wagtail). When I went looking there were numerous posts with people explaining
+that they did the migration but no one had provided code that would work (a few
+close calls were broken by missing libraries).
+
 Install
 =======
 
